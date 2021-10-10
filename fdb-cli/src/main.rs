@@ -1,6 +1,7 @@
 use fdb_cli::{cli, config};
 use anyhow::Result;
 use fdb_cli::client::FdbClient;
+use trompt::Trompt;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,6 +32,15 @@ async fn main() -> Result<()> {
             match config.write() {
                 Ok(()) => println!("config file has been changed"),
                 Err(e) => panic!(e)
+            }
+        },
+        cli::Opts::Reset => {
+            let is_sure = Trompt::stdout()
+                .confirm("Are you sure [y/n]? ").expect("user declined");
+
+            println!("{}", is_sure);
+            if !is_sure {
+                std::process::exit(0)
             }
         }
     }

@@ -10,7 +10,10 @@ pub enum Opts {
     Move(Move),
 
     // Setup a foundation db instance
-    Setup(Setup)
+    Setup(Setup),
+
+    // Reset the fdb indexes
+    Reset
 }
 
 #[derive(Debug, StructOpt)]

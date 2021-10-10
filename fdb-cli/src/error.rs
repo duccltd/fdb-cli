@@ -22,6 +22,12 @@ impl std::fmt::Display for Error {
     }
 }
 
+impl From<trompt::Error> for Error {
+    fn from(_: trompt::Error) -> Self {
+        todo!()
+    }
+}
+
 impl From<FdbError> for Error {
     fn from(err: FdbError) -> Error {
         Error::Fdb(err)
