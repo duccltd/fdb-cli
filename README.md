@@ -11,6 +11,7 @@ A command-line tool for FoundationDB
 - [`move`]()
 - [`delete`]()
 - [`reset`]()
+- [`get`]()
 
 ```shell
 cargo run -- setup --cluster-file /etc/foundationdb/fdb.cluster
