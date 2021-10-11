@@ -4,9 +4,7 @@ use os_type::OSType;
 use std::fmt::Formatter;
 use serde::{Deserialize, Serialize};
 
-lazy_static! {
-    pub static ref CONFIGURATION_NAME: String = "Config".to_string();
-}
+const CONFIGURATION_NAME: String = "Config".to_string();
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FdbCliConfig {
