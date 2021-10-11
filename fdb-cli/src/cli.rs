@@ -4,7 +4,10 @@ use structopt::StructOpt;
 #[structopt(name = "fdb-cli", about = "foundation db cli tool")]
 pub enum Opts {
     // Deleting a keyspace
-    Delete(Delete),
+    Delete(Space),
+
+    // Get a key value
+    Get(Space),
 
     // Moving a keyspace
     Move(Move),
@@ -13,7 +16,28 @@ pub enum Opts {
     Setup(Setup),
 
     // Reset the fdb indexes
-    Reset
+    Reset,
+}
+
+#[derive(Debug, StructOpt)]
+pub enum Space {
+    Key(Key),
+
+    Range(Range)
+}
+
+#[derive(Debug, StructOpt)]
+pub struct Key {
+    pub key: String,
+}
+
+#[derive(Debug, StructOpt)]
+pub struct Range {
+    #[structopt(short = "s", long, help = "Starting key range identifier")]
+    pub start: String,
+
+    #[structopt(short = "e", long, help = "Ending key range identifier")]
+    pub end: Option<String>
 }
 
 #[derive(Debug, StructOpt)]
@@ -26,15 +50,18 @@ pub struct Move {
 }
 
 #[derive(Debug, StructOpt)]
-pub struct Delete {
-    #[structopt(short = "k", long, help = "Key space to delete")]
-    pub key_space: String,
+pub enum Setup {
+    Set(Set),
+
+    View,
 }
 
 #[derive(Debug, StructOpt)]
-pub struct Setup {
+pub struct Set {
     #[structopt(short = "cf", long, help = "Path to cluster file")]
     pub cluster_file: String,
+
+    //TODO: Key value type
 }
 
 pub fn parse() -> Opts {

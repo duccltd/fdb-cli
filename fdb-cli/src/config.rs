@@ -30,6 +30,12 @@ pub fn load_config() -> Result<FdbCliConfig> {
     Ok(config)
 }
 
+impl std::fmt::Display for FdbCliConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Configuration values: \nversion: {:?} \ncluster file: {}", self.version, &self.cluster_file)
+    }
+}
+
 impl std::default::Default for FdbCliConfig {
     fn default() -> Self {
         let path = FdbCliConfig::default_cluster_file();

@@ -4,6 +4,7 @@ use crate::result::Result;
 use tokio::time::timeout;
 use std::time::Duration;
 use foundationdb::future::FdbValues;
+use std::collections::HashMap;
 
 pub struct FdbClient {
     pub db: Database,
@@ -49,14 +50,14 @@ impl FdbClient {
         Ok(Some((*val).to_vec()))
     }
 
-    pub async fn get_range_keys<'a>(
+    pub async fn get_range<'a>(
         &self,
         tx: &'a Transaction,
         from: &'a [u8],
         to: &'a [u8]
-    ) -> Result<FdbValues> {
+    ) -> Result<HashMap<Vec<u8>, Vec<u8>>> {
         println!(
-            "get_range_keys {} {}",
+            "get_range {} {}",
             String::from_utf8_lossy(from),
             String::from_utf8_lossy(to),
         );
@@ -75,6 +76,12 @@ impl FdbClient {
             .await?;
 
         // Ok(values.into_iter().map(|kv| kv.key().to_vec()).collect())
-        Ok(values)
+        let mut map: HashMap<Vec<u8>, Vec<u8>> = HashMap::new();
+        values.into_iter().map(|kv| map.insert(
+            kv.key().to_vec(),
+            kv.value().to_vec()
+        ));
+
+        Ok(map)
     }
 }
