@@ -3,8 +3,9 @@ use crate::error::Error;
 use os_type::OSType;
 use std::fmt::Formatter;
 use serde::{Deserialize, Serialize};
+use tracing::*;
 
-const CONFIGURATION_NAME: String = "Config".to_string();
+const CONFIGURATION_NAME: &str = "Config";
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FdbCliConfig {
@@ -18,7 +19,7 @@ pub struct FdbCliConfig {
 pub fn load_config() -> Result<FdbCliConfig> {
     let config = match confy::load::<FdbCliConfig>(&CONFIGURATION_NAME) {
         Ok(res) => {
-            println!("Found fdb-cli configuration file (version: {:?})", res.version);
+            info!("Found fdb-cli configuration file (version: {:?})", res.version);
             res
         },
         Err(e) => return Err(
@@ -67,20 +68,5 @@ impl FdbCliConfig {
                 Error::UnableToWriteConfig(e)
             )
         }
-    }
-}
-
-fn to_string(os_type: OSType) -> &'static str {
-    match os_type {
-        OSType::Ubuntu => "Ubuntu",
-        OSType::OSX => "OSX",
-        OSType::Alpine => "Alpine",
-        OSType::Arch => "Arch",
-        OSType::Manjaro => "Manjaro",
-        OSType::CentOS => "CentOS",
-        OSType::Debian => "Debian",
-        OSType::OpenSUSE => "OpenSUSE",
-        OSType::Redhat => "Redhat",
-        OSType::Unknown => "Unknown",
     }
 }

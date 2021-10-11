@@ -5,6 +5,7 @@ use tokio::time::timeout;
 use std::time::Duration;
 use foundationdb::future::FdbValues;
 use std::collections::HashMap;
+use tracing::*;
 
 pub struct FdbClient {
     pub db: Database,
@@ -32,7 +33,7 @@ impl FdbClient {
     }
 
     pub fn delete<'a>(&self, tx: &'a Transaction, key: &'a [u8]) {
-        println!("delete {}", String::from_utf8_lossy(key));
+        debug!("delete {}", String::from_utf8_lossy(key));
         tx.clear(key);
     }
 
@@ -42,7 +43,7 @@ impl FdbClient {
         from: &'a [u8],
         to: &'a [u8]
     ) {
-        println!(
+        debug!(
             "delete_range {} {}",
             String::from_utf8_lossy(from),
             String::from_utf8_lossy(to),
@@ -55,12 +56,12 @@ impl FdbClient {
     }
 
     pub fn set<'a>(&self, tx: &'a Transaction, key: &'a [u8], value: &[u8]) {
-        println!("set {}", String::from_utf8_lossy(key));
+        debug!("set {}", String::from_utf8_lossy(key));
         tx.set(key, value);
     }
 
     pub async fn get<'a>(&self, tx: &'a Transaction, key: &'a [u8]) -> Result<Option<Vec<u8>>> {
-        println!("get {}", String::from_utf8_lossy(key));
+        debug!("get {}", String::from_utf8_lossy(key));
         let opt_val = tx.get(key, false).await?;
         let val = match opt_val {
             None => return Ok(None),
@@ -75,7 +76,7 @@ impl FdbClient {
         from: &'a [u8],
         to: &'a [u8]
     ) -> Result<HashMap<Vec<u8>, Vec<u8>>> {
-        println!(
+        debug!(
             "get_range {} {}",
             String::from_utf8_lossy(from),
             String::from_utf8_lossy(to),

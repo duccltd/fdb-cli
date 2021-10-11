@@ -13,9 +13,9 @@ pub enum Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Error::UnsupportedOperatingSystem(os) => write!(f, "{}", os),
-            Error::UnableToReadConfig(ref err) => write!(f, "{}", err),
-            Error::UnableToWriteConfig(ref err) => write!(f, "{}", err),
+            Error::UnsupportedOperatingSystem(os) => write!(f, "Unsupported OS: {}", os),
+            Error::UnableToReadConfig(ref err) => write!(f, "Unable to read configuration: {}", err),
+            Error::UnableToWriteConfig(ref err) => write!(f, "Unable to write configuration: {}", err),
             Error::Fdb(ref e) => write!(f, "Fdb error: {}", e),
             Error::Elapsed(ref e) => write!(f, "Tokio timeout elapsed error: {}", e)
         }

@@ -2,6 +2,7 @@ use fdb_cli::{cli, config};
 use anyhow::Result;
 use fdb_cli::client::FdbClient;
 use trompt::Trompt;
+use tracing::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -13,16 +14,14 @@ async fn main() -> Result<()> {
 
     let mut config = config::load_config().expect("unable to load config");
 
+    let client = FdbClient::new(&config.cluster_file)
+        .expect("unable to start client");
+
     match opts {
         /*
         Move a kv pair to another key
          */
-        cli::Opts::Move(_params) => {
-            let _client = FdbClient::new(&config.cluster_file)
-                .expect("unable to start client");
-
-            println!("client started")
-        },
+        cli::Opts::Move(_params) => {},
         /*
         Setup the foundation db config
          */
@@ -32,12 +31,12 @@ async fn main() -> Result<()> {
                     config.cluster_file = set.cluster_file;
 
                     match config.write() {
-                        Ok(()) => println!("config file has been changed"),
+                        Ok(()) => info!("config file has been changed"),
                         Err(e) => panic!(e)
                     }
                 },
                 cli::Setup::View => {
-                    println!("{}", config);
+                    info!("{}", config);
                 }
             }
         },
@@ -48,7 +47,6 @@ async fn main() -> Result<()> {
             let is_sure = Trompt::stdout()
                 .confirm("Are you sure [y/n]? ").expect("user declined");
 
-            println!("{}", is_sure);
             if !is_sure {
                 std::process::exit(0)
             }
@@ -57,9 +55,6 @@ async fn main() -> Result<()> {
         Deleting a key or key range from foundation db
          */
         cli::Opts::Delete(params) => {
-            let client = FdbClient::new(&config.cluster_file)
-                .expect("unable to start client");
-
             let tx = client.db.create_trx()?;
 
             match params {
@@ -73,7 +68,7 @@ async fn main() -> Result<()> {
 
                     if is_sure {
                         client.delete(&tx, &key.key.as_bytes());
-                        println!("key has been deleted")
+                        info!("key has been deleted")
                     }
                 },
                 cli::Space::Range(range) => {
@@ -81,8 +76,8 @@ async fn main() -> Result<()> {
                         .confirm(
                             &format!(
                                 "Are you sure you want to delete the range range (start: {}, end: {}) [y/n]? ",
-                                range.start,
-                                range.end.unwrap_or("all".to_string())
+                                range.start.clone(),
+                                range.end.clone().unwrap_or("all".to_string())
                             )
                         ).expect("user declined");
 
@@ -94,7 +89,7 @@ async fn main() -> Result<()> {
                             // TODO: Make this optional for deleting all keys
                             &range.end.unwrap_or("\x00".to_string()).as_bytes()
                         );
-                        println!("key range has been deleted")
+                        info!("key range has been deleted")
                     }
                 }
             }
@@ -103,9 +98,6 @@ async fn main() -> Result<()> {
         Get a protobuf kv pair or range
          */
         cli::Opts::Get(params) => {
-            let client = FdbClient::new(&config.cluster_file)
-                .expect("unable to start client");
-
             let tx = client.db.create_trx()?;
 
             match params {
@@ -118,7 +110,7 @@ async fn main() -> Result<()> {
                         Some(value) => {
                             let result = std::str::from_utf8(&value)
                                 .expect("unable to decode protobuf");
-                            println!("{}", result)
+                            info!("{}", result)
                         },
                         None => panic!("Could not find any entries with key: {}", &key.key)
                     }
@@ -139,7 +131,7 @@ async fn main() -> Result<()> {
                             .expect("unable to decode protobuf");
                         let dec_value = std::str::from_utf8(&value)
                             .expect("unable to decode protobuf");
-                        println!("{}: {}", dec_key, dec_value);
+                        info!("{}: {}", dec_key, dec_value);
                     }
                 }
             }
