@@ -32,7 +32,26 @@ impl FdbClient {
     }
 
     pub fn delete<'a>(&self, tx: &'a Transaction, key: &'a [u8]) {
+        println!("delete {}", String::from_utf8_lossy(key));
         tx.clear(key);
+    }
+
+    pub fn delete_range<'a>(
+        &self,
+        tx: &'a Transaction,
+        from: &'a [u8],
+        to: &'a [u8]
+    ) {
+        println!(
+            "delete_range {} {}",
+            String::from_utf8_lossy(from),
+            String::from_utf8_lossy(to),
+        );
+
+        tx.clear_range(
+            from,
+            to
+        )
     }
 
     pub fn set<'a>(&self, tx: &'a Transaction, key: &'a [u8], value: &[u8]) {
@@ -77,10 +96,12 @@ impl FdbClient {
 
         // Ok(values.into_iter().map(|kv| kv.key().to_vec()).collect())
         let mut map: HashMap<Vec<u8>, Vec<u8>> = HashMap::new();
-        values.into_iter().map(|kv| map.insert(
-            kv.key().to_vec(),
-            kv.value().to_vec()
-        ));
+        values.into_iter().for_each(|kv| {
+            map.insert(
+                kv.key().to_vec(),
+                kv.value().to_vec()
+            );
+        });
 
         Ok(map)
     }

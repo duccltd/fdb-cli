@@ -14,12 +14,18 @@ async fn main() -> Result<()> {
     let mut config = config::load_config().expect("unable to load config");
 
     match opts {
+        /*
+        Move a kv pair to another key
+         */
         cli::Opts::Move(_params) => {
             let _client = FdbClient::new(&config.cluster_file)
                 .expect("unable to start client");
 
             println!("client started")
         },
+        /*
+        Setup the foundation db config
+         */
         cli::Opts::Setup(params) => {
             match params {
                 cli::Setup::Set(set) => {
@@ -35,6 +41,9 @@ async fn main() -> Result<()> {
                 }
             }
         },
+        /*
+        Reset foundation db
+         */
         cli::Opts::Reset => {
             let is_sure = Trompt::stdout()
                 .confirm("Are you sure [y/n]? ").expect("user declined");
@@ -44,19 +53,55 @@ async fn main() -> Result<()> {
                 std::process::exit(0)
             }
         },
+        /*
+        Deleting a key or key range from foundation db
+         */
         cli::Opts::Delete(params) => {
-            let _client = FdbClient::new(&config.cluster_file)
+            let client = FdbClient::new(&config.cluster_file)
                 .expect("unable to start client");
+
+            let tx = client.db.create_trx()?;
 
             match params {
                 cli::Space::Key(key) => {
-                    unimplemented!("key deletion")
+                    let is_sure = Trompt::stdout()
+                        .confirm(
+                            &format!(
+                                "Are you sure you want to delete the key `{}` [y/n]? ",
+                                &key.key)
+                        ).expect("user declined");
+
+                    if is_sure {
+                        client.delete(&tx, &key.key.as_bytes());
+                        println!("key has been deleted")
+                    }
                 },
                 cli::Space::Range(range) => {
-                    unimplemented!("range deletion")
+                    let is_sure = Trompt::stdout()
+                        .confirm(
+                            &format!(
+                                "Are you sure you want to delete the range range (start: {}, end: {}) [y/n]? ",
+                                range.start,
+                                range.end.unwrap_or("all".to_string())
+                            )
+                        ).expect("user declined");
+
+                    if is_sure {
+                        client.delete_range(
+                            &tx,
+                            &range.start.as_bytes(),
+
+                            // TODO: Make this optional for deleting all keys
+                            &range.end.unwrap_or("\x00".to_string()).as_bytes()
+                        );
+                        println!("key range has been deleted")
+                    }
                 }
             }
         },
+        /*
+        Get a protobuf kv pair or range
+         */
         cli::Opts::Get(params) => {
             let client = FdbClient::new(&config.cluster_file)
                 .expect("unable to start client");
