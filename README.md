@@ -1,5 +1,5 @@
 # fdb-cli
-A command-line tool to make developing with FoundationDB more feasible for large scale development. 
+A command-line tool to make developing with FoundationDB easier with protobufs. 
 
 ## Installation
 N/A
