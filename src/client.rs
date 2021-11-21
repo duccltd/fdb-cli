@@ -1,10 +1,9 @@
-use foundationdb::{Database, Transaction, RangeOption};
-use foundationdb::api::{NetworkAutoStop, FdbApiBuilder};
 use crate::result::Result;
-use tokio::time::timeout;
-use std::time::Duration;
-use foundationdb::future::FdbValues;
+use foundationdb::api::{FdbApiBuilder, NetworkAutoStop};
+use foundationdb::{Database, RangeOption, Transaction};
 use std::collections::HashMap;
+use std::time::Duration;
+use tokio::time::timeout;
 use tracing::*;
 
 pub struct FdbClient {
@@ -12,6 +11,8 @@ pub struct FdbClient {
 }
 
 impl FdbClient {
+    /// # Safety
+    /// This function is unsafe because it starts a background thread using the C API of fdb.
     pub unsafe fn start_network() -> Result<NetworkAutoStop> {
         let network_builder = FdbApiBuilder::default().build()?;
 
@@ -28,7 +29,7 @@ impl FdbClient {
 
         match timeout(Duration::from_secs(1), f).await {
             Ok(tx) => tx,
-            Err(e) => Err(e.into())
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -37,22 +38,14 @@ impl FdbClient {
         tx.clear(key);
     }
 
-    pub fn delete_range<'a>(
-        &self,
-        tx: &'a Transaction,
-        from: &'a [u8],
-        to: &'a [u8]
-    ) {
+    pub fn delete_range<'a>(&self, tx: &'a Transaction, from: &'a [u8], to: &'a [u8]) {
         debug!(
             "delete_range {} {}",
             String::from_utf8_lossy(from),
             String::from_utf8_lossy(to),
         );
 
-        tx.clear_range(
-            from,
-            to
-        )
+        tx.clear_range(from, to)
     }
 
     pub fn set<'a>(&self, tx: &'a Transaction, key: &'a [u8], value: &[u8]) {
@@ -74,7 +67,7 @@ impl FdbClient {
         &self,
         tx: &'a Transaction,
         from: &'a [u8],
-        to: &'a [u8]
+        to: &'a [u8],
     ) -> Result<HashMap<Vec<u8>, Vec<u8>>> {
         debug!(
             "get_range {} {}",
@@ -98,10 +91,7 @@ impl FdbClient {
         // Ok(values.into_iter().map(|kv| kv.key().to_vec()).collect())
         let mut map: HashMap<Vec<u8>, Vec<u8>> = HashMap::new();
         values.into_iter().for_each(|kv| {
-            map.insert(
-                kv.key().to_vec(),
-                kv.value().to_vec()
-            );
+            map.insert(kv.key().to_vec(), kv.value().to_vec());
         });
 
         Ok(map)

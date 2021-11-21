@@ -1,5 +1,6 @@
-pub mod config;
 pub mod cli;
-mod result;
-mod error;
 pub mod client;
+pub mod config;
+pub mod error;
+pub mod protobuf;
+pub mod result;
